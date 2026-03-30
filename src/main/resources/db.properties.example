@@ -1,0 +1,18 @@
+jdbc.driverClassName=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://127.0.0.1:3306/acss_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+jdbc.username=xxx
+jdbc.password=xxxx
+
+jdbc.initialSize=5
+jdbc.minIdle=5
+jdbc.maxActive=20
+jdbc.maxWait=60000
+
+jdbc.validationQuery=SELECT 1
+jdbc.testWhileIdle=true
+jdbc.testOnBorrow=false
+jdbc.testOnReturn=false
+jdbc.timeBetweenEvictionRunsMillis=60000
+jdbc.minEvictableIdleTimeMillis=300000
+jdbc.poolPreparedStatements=false
+jdbc.maxPoolPreparedStatementPerConnectionSize=20
