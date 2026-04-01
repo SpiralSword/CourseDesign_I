@@ -56,4 +56,10 @@
         <session-timeout>30</session-timeout>
     </session-config>
 
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/views/404.jsp</location>
+    </error-page>
+
+
 </web-app>

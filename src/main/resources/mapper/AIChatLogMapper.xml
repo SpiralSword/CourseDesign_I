@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.ai.mapper.AIChatLogMapper">
+
+    <insert id="insertLog">
+        INSERT INTO ai_chat_log (user_id, question, content, create_time)
+        VALUES (#{userId}, #{question}, #{content}, NOW())
+    </insert>
+
+    <select id="findByUserId" resultType="com.study.ai.pojo.entity.AIChatLog">
+        SELECT id, user_id as userId, question, content, create_time as createTime
+        FROM ai_chat_log
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.ai.mapper.UserMapper">
+
+    <!-- 根据用户名查询用户 -->
+    <select id="findByUsername" resultType="com.study.ai.pojo.entity.User">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <!-- 获取积分排行榜 -->
+    <select id="findTopPointsUsers" resultType="com.study.ai.pojo.entity.User">
+        SELECT id, nickname, points, avatar FROM user
+        WHERE status = 0
+        ORDER BY points DESC LIMIT 10
+    </select>
+
+    <!-- 用户注册 -->
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user(username, password, nickname, role, points, status, create_time)
+        VALUES(#{username}, #{password}, #{nickname}, '0', 100, 0, NOW())
+    </insert>
+
+    <!-- 变动积分 -->
+    <update id="changePoints">
+        UPDATE user SET points = points + #{amount} WHERE id = #{userId}
+    </update>
+
+    <!-- 签到相关 -->
+    <select id="countTodayCheckIn" resultType="int">
+        SELECT count(*) FROM check_in_log
+        WHERE user_id = #{userId} AND check_in_date = CURDATE()
+    </select>
+
+    <insert id="insertCheckIn">
+        INSERT INTO check_in_log (user_id, check_in_date)
+        VALUES (#{userId}, CURDATE())
+    </insert>
+
+    <!-- 后台：查询所有 -->
+    <select id="findAll" resultType="com.study.ai.pojo.entity.User">
+        SELECT * FROM user ORDER BY id DESC
+    </select>
+
+    <select id="selectByUsernameAndPassword" resultType="com.study.ai.pojo.entity.User">
+        SELECT * FROM user
+        WHERE username = #{username} AND password = #{password}
+    </select>
+    <!-- 支持邮箱的插入语句 -->
+    <insert id="insert" parameterType="com.study.ai.pojo.entity.User">
+        INSERT INTO user (username, password, nickname, email, avatar, points)
+        VALUES (#{username}, #{password}, #{nickname}, #{email}, #{avatar}, #{points})
+    </insert>
+    <!-- 更新头像的语句 -->
+    <update id="updateByPrimaryKeySelective" parameterType="com.study.ai.pojo.entity.User">
+        UPDATE user
+        <set>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="password != null">password = #{password},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
