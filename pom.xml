@@ -24,8 +24,8 @@
         <mysql.version>8.0.33</mysql.version>
         <jackson.version>2.15.3</jackson.version>
         <log4j2.version>2.20.0</log4j2.version>
-        <httpclient.version>4.5.14</httpclient.version>
         <druid.version>1.2.20</druid.version>
+        <okhttp.version>4.12.0</okhttp.version>
     </properties>
 
     <dependencies>
@@ -123,13 +123,6 @@
             <version>1.2</version>
         </dependency>
 
-        <!-- HTTP 客户端 -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpclient.version}</version>
-        </dependency>
-
         <!-- AOP -->
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -182,16 +175,16 @@
             <scope>provided</scope>
         </dependency>
 
-        <!--ai 处理 JSON 和 HTTP 请求-->
+        <!-- AI 调用 -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.83</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
         </dependency>
 
         <dependency>

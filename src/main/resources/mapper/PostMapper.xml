@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.ai.mapper.PostMapper">
+
+    <resultMap id="PostMap" type="com.study.ai.pojo.entity.Post">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="courseName" column="course_name"/>
+        <result property="content" column="content"/>
+        <result property="userId" column="user_id"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="replyCount" column="reply_count"/>
+        <result property="createTime" column="create_time"/>
+        <result property="authorNickname" column="author_nickname"/>
+        <result property="authorAvatar" column="author_avatar"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="PostMap">
+        SELECT
+            p.*,
+            u.nickname AS author_nickname,
+            u.avatar AS author_avatar
+        FROM post p
+                 LEFT JOIN user u ON p.user_id = u.id
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="searchByKeyword" resultMap="PostMap">
+        SELECT
+            p.*,
+            u.nickname AS author_nickname,
+            u.avatar AS author_avatar
+        FROM post p
+                 LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.title LIKE CONCAT('%', #{keyword}, '%')
+           OR p.course_name LIKE CONCAT('%', #{keyword}, '%')
+           OR p.content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="findById" resultMap="PostMap">
+        SELECT
+            p.*,
+            u.nickname AS author_nickname,
+            u.avatar AS author_avatar
+        FROM post p
+                 LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="findByUserId" resultMap="PostMap">
+        SELECT
+            p.*,
+            u.nickname AS author_nickname,
+            u.avatar AS author_avatar
+        FROM post p
+                 LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.user_id = #{userId}
+        ORDER BY p.create_time DESC
+    </select>
+
+    <insert id="insertPost" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO post (title, course_name, content, user_id, like_count, reply_count, create_time)
+        VALUES (#{title}, #{courseName}, #{content}, #{userId}, 0, 0, NOW())
+    </insert>
+
+    <update id="incrementReplyCount">
+        UPDATE post SET reply_count = reply_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementLikeCount">
+        UPDATE post SET like_count = like_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="decrementLikeCount">
+        UPDATE post SET like_count = CASE WHEN like_count &gt; 0 THEN like_count - 1 ELSE 0 END WHERE id = #{id}
+    </update>
+
+    <select id="countLikeRecord" resultType="int">
+        SELECT COUNT(*) FROM post_like WHERE post_id = #{postId} AND user_id = #{userId}
+    </select>
+
+    <insert id="insertLikeRecord">
+        INSERT INTO post_like (post_id, user_id, create_time)
+        VALUES (#{postId}, #{userId}, NOW())
+    </insert>
+
+    <delete id="deleteLikeRecord">
+        DELETE FROM post_like WHERE post_id = #{postId} AND user_id = #{userId}
+    </delete>
+
+    <delete id="deleteLikeRecordsByPostId">
+        DELETE FROM post_like WHERE post_id = #{postId}
+    </delete>
+
+    <delete id="deleteById">
+        DELETE FROM post WHERE id = #{id}
+    </delete>
+
+</mapper>

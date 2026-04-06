@@ -7,6 +7,6 @@ public class AIChatLog {
     private Integer id;
     private Integer userId;
     private String question;
-    private String content; // 对应数据库答复内容
+    private String answer;
     private Date createTime;
 }

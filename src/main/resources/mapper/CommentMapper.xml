@@ -24,4 +24,8 @@
         ORDER BY c.create_time DESC
     </select>
 
+    <delete id="deleteByResourceId">
+        DELETE FROM comment WHERE resource_id = #{resourceId}
+    </delete>
+
 </mapper>

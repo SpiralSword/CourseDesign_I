@@ -1,78 +1,98 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>AI 导师 - ACSS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>AI 助教 - ACSS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        .chat-window { height: 65vh; overflow-y: auto; background: #fff; border-radius: 10px; border: 1px solid #eee; padding: 20px; }
-        .msg-bubble { margin-bottom: 20px; max-width: 85%; padding: 12px 18px; border-radius: 15px; line-height: 1.6; }
-        .msg-user { background: #007bff; color: white; margin-left: auto; border-bottom-right-radius: 2px; }
-        .msg-ai { background: #f0f2f5; border-bottom-left-radius: 2px; }
+        body { background: #eef4f8; }
+        .chat-window { height: 66vh; overflow-y: auto; background: #fff; border-radius: 22px; border: 1px solid #e2e8f0; padding: 24px; }
+        .msg-bubble { margin-bottom: 18px; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.7; }
+        .msg-user { background: #0f4c81; color: white; margin-left: auto; }
+        .msg-ai { background: #f3f6f9; color: #0f172a; }
     </style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-dark bg-primary shadow-sm mb-4">
+<body>
+<nav class="navbar bg-white border-bottom mb-4">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/index">⬅ 智学 AI 导师</a>
+        <a class="navbar-brand fw-bold text-primary" href="${pageContext.request.contextPath}/index">ACSS AI 助教</a>
+        <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/index">回首页</a>
     </div>
 </nav>
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="chat-window shadow-sm bg-white mb-3" id="chatBox">
-                <!-- 初始提示 -->
-                <div class="msg-bubble msg-ai shadow-sm">你好，${currUser.nickname}！我是你的 Java 学习伙伴。有什么我可以帮你的吗？</div>
-
-                <!-- 渲染历史 -->
+        <div class="col-lg-10">
+            <div class="chat-window shadow-sm mb-3" id="chatBox">
+                <div class="msg-bubble msg-ai">你好，${currUser.nickname}。我会围绕 Java、SSM、数据库和课程资料内容提供答疑。</div>
                 <c:forEach items="${history}" var="h">
                     <div class="msg-bubble msg-user">${h.question}</div>
                     <div class="msg-bubble msg-ai ai-render">${h.answer}</div>
                 </c:forEach>
             </div>
 
-            <div class="input-group input-group-lg shadow-sm">
-                <input type="text" id="qInput" class="form-control" placeholder="在此输入你的 Java 技术疑问...">
-                <button class="btn btn-primary px-5" onclick="sendToAI()">发送</button>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="input-group input-group-lg">
+                        <input type="text" id="qInput" class="form-control" placeholder="输入课程问题、代码疑问或知识点">
+                        <button class="btn btn-primary px-4" onclick="sendToAI()">发送</button>
+                    </div>
+                    <div id="status" class="text-muted small mt-2" style="display:none;">AI 正在整理回答...</div>
+                </div>
             </div>
-            <div id="status" class="text-muted mt-2 small ml-2" style="display: none;">🧠 AI 正在思考并编撰代码...</div>
         </div>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        $(".ai-render").each(function() { $(this).html(marked.parse($(this).text())); });
+    function renderHistory() {
+        document.querySelectorAll('.ai-render').forEach(function(item) {
+            item.innerHTML = marked.parse(item.textContent);
+        });
         scrollDown();
-    });
+    }
 
     function sendToAI() {
-        let q = $("#qInput").val();
-        if(!q) return;
-
-        $("#chatBox").append(`<div class="msg-bubble msg-user">${q}</div>`);
-        $("#qInput").val("");
-        $("#status").show();
+        const input = document.getElementById('qInput');
+        const question = input.value.trim();
+        if (!question) {
+            return;
+        }
+        const box = document.getElementById('chatBox');
+        box.insertAdjacentHTML('beforeend', '<div class="msg-bubble msg-user"></div>');
+        box.lastElementChild.innerText = question;
+        input.value = '';
+        document.getElementById('status').style.display = 'block';
         scrollDown();
 
-        $.post("${pageContext.request.contextPath}/ai/ask", {question: q}, function(res) {
-            $("#status").hide();
-            if(res.code === 200) {
-                let htmlAns = marked.parse(res.answer);
-                $("#chatBox").append(`<div class="msg-bubble msg-ai">${htmlAns}</div>`);
-                scrollDown();
-            }
-        });
+        const params = new URLSearchParams();
+        params.append('question', question);
+        fetch('${pageContext.request.contextPath}/ai/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        }).then(function(res) { return res.json(); })
+            .then(function(data) {
+                document.getElementById('status').style.display = 'none';
+                if (data.code === 200) {
+                    const html = marked.parse(data.answer);
+                    box.insertAdjacentHTML('beforeend', '<div class="msg-bubble msg-ai">' + html + '</div>');
+                    scrollDown();
+                } else {
+                    alert(data.msg || '请求失败');
+                }
+            });
     }
 
     function scrollDown() {
-        let cb = document.getElementById("chatBox");
-        cb.scrollTop = cb.scrollHeight;
+        const box = document.getElementById('chatBox');
+        box.scrollTop = box.scrollHeight;
     }
+
+    renderHistory();
 </script>
 </body>
 </html>

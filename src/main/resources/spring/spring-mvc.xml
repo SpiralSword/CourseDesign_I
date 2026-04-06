@@ -24,6 +24,7 @@
 
     <!-- 静态资源放行 -->
     <mvc:default-servlet-handler/>
+    <mvc:resources mapping="/static/**" location="/static/"/>
     <mvc:resources mapping="/uploads/**" location="/uploads/"/>
 
     <!-- JSP 视图解析器 -->
@@ -49,47 +50,27 @@
 
     <mvc:interceptors>
         <mvc:interceptor>
-            <!-- 拦截所有路径 -->
             <mvc:mapping path="/**"/>
-
-            <!-- 必须排除以下路径，否则无法登录和注册 -->
+            <mvc:exclude-mapping path="/"/>
+            <mvc:exclude-mapping path="/index"/>
             <mvc:exclude-mapping path="/user/loginPage"/>
             <mvc:exclude-mapping path="/user/login"/>
-            <mvc:exclude-mapping path="/user/registerPage"/> <!-- 重要：允许访问注册页 -->
-            <mvc:exclude-mapping path="/user/register"/>     <!-- 重要：允许提交注册信息 -->
-
-            <!-- 排除静态资源（JS/CSS/图片） -->
+            <mvc:exclude-mapping path="/user/registerPage"/>
+            <mvc:exclude-mapping path="/user/register"/>
+            <mvc:exclude-mapping path="/resource/list"/>
+            <mvc:exclude-mapping path="/resource/detail"/>
+            <mvc:exclude-mapping path="/post/list"/>
+            <mvc:exclude-mapping path="/post/detail"/>
             <mvc:exclude-mapping path="/static/**"/>
             <mvc:exclude-mapping path="/assets/**"/>
             <mvc:exclude-mapping path="/uploads/**"/>
 
             <bean class="com.study.ai.interceptor.LoginInterceptor"/>
         </mvc:interceptor>
-    </mvc:interceptors>
-    <!--
-        拦截器示例：
-        前提：你的拦截器类上加 @Component，例如：
-        @Component
-        public class LoginInterceptor implements HandlerInterceptor {}
-    -->
-    <!--
-    <mvc:interceptors>
-        <mvc:interceptor>
-            <mvc:mapping path="/post/**"/>
-            <mvc:mapping path="/resource/**"/>
-            <mvc:mapping path="/ai/**"/>
-            <mvc:exclude-mapping path="/user/login"/>
-            <mvc:exclude-mapping path="/user/register"/>
-            <ref bean="loginInterceptor"/>
-        </mvc:interceptor>
-
         <mvc:interceptor>
             <mvc:mapping path="/admin/**"/>
-            <ref bean="adminInterceptor"/>
+            <bean class="com.study.ai.interceptor.AdminInterceptor"/>
         </mvc:interceptor>
     </mvc:interceptors>
-    -->
-
-
 
 </beans>

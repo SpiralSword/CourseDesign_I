@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.ai.mapper.PostReplyMapper">
+
+    <resultMap id="PostReplyMap" type="com.study.ai.pojo.entity.PostReply">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="nickname" column="nickname"/>
+        <result property="avatar" column="avatar"/>
+    </resultMap>
+
+    <select id="findByPostId" resultMap="PostReplyMap">
+        SELECT
+            r.*,
+            u.nickname,
+            u.avatar
+        FROM post_reply r
+                 LEFT JOIN user u ON r.user_id = u.id
+        WHERE r.post_id = #{postId}
+        ORDER BY r.create_time ASC
+    </select>
+
+    <insert id="insert" parameterType="com.study.ai.pojo.entity.PostReply" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO post_reply (post_id, user_id, content, create_time)
+        VALUES (#{postId}, #{userId}, #{content}, NOW())
+    </insert>
+
+    <delete id="deleteByPostId">
+        DELETE FROM post_reply WHERE post_id = #{postId}
+    </delete>
+
+</mapper>

@@ -1,30 +1,98 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<html>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
+    <meta charset="UTF-8">
     <title>个人中心</title>
-    <link href="https://cdn.staticfile.org/twitter-bootstrap/4.6.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f7fb; }
+        .profile-card, .list-card { border-radius: 24px; }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
-    <div class="card mx-auto" style="width: 500px;">
-        <div class="card-header bg-primary text-white">个人中心</div>
-        <div class="card-body text-center">
-            <!-- 头像显示 -->
-            <img id="avatarImg" src="${currUser.avatar != null ? currUser.avatar : 'https://via.placeholder.com/150'}"
-                 class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #eee;">
+<body>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="small text-uppercase text-primary fw-semibold">Profile Center</div>
+            <h2 class="fw-bold mb-0">我的学习档案</h2>
+        </div>
+        <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/index">返回首页</a>
+    </div>
 
-            <form id="avatarForm">
-                <div class="custom-file mb-3">
-                    <input type="file" name="avatarFile" class="custom-file-input" id="fileInput">
-                    <label class="custom-file-label">选择图片</label>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card profile-card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <img id="avatarImg" src="${currUser.avatar}" class="rounded-circle border p-1 mb-3" style="width: 132px;height:132px;object-fit:cover;">
+                    <h4 class="fw-bold mb-1">${currUser.nickname}</h4>
+                    <div class="text-muted mb-3">${currUser.username}</div>
+                    <div class="badge text-bg-warning fs-6 mb-3">积分 ${currUser.points}</div>
+                    <div class="text-muted small mb-3">${currUser.email}</div>
+                    <div class="d-grid gap-2">
+                        <input type="file" id="fileInput" class="form-control">
+                        <button type="button" onclick="uploadAvatar()" class="btn btn-primary">更新头像</button>
+                        <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/resource/upload">上传新资源</a>
+                        <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/post/publish">发布课程帖</a>
+                    </div>
                 </div>
-                <button type="button" onclick="uploadAvatar()" class="btn btn-info btn-sm">更换头像</button>
-            </form>
+            </div>
+        </div>
 
-            <hr>
-            <p>用户名: <strong>${currUser.username}</strong></p>
-            <p>昵称: <strong>${currUser.nickname}</strong></p>
-            <a href="${pageContext.request.contextPath}/index" class="btn btn-secondary">返回首页</a>
+        <div class="col-lg-8">
+            <div class="card list-card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">我的资源</h5>
+                    <c:forEach items="${uploadedResources}" var="r">
+                        <div class="d-flex justify-content-between align-items-center border rounded-4 p-3 mb-2">
+                            <div>
+                                <div class="fw-semibold">${r.title}</div>
+                                <div class="small text-muted">${r.courseName} · ${r.category} · 下载 ${r.downloadCount}</div>
+                            </div>
+                            <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/resource/detail?id=${r.id}">查看</a>
+                        </div>
+                    </c:forEach>
+                    <c:if test="${empty uploadedResources}">
+                        <div class="text-muted">你还没有上传任何资源。</div>
+                    </c:if>
+                </div>
+            </div>
+
+            <div class="card list-card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">我的帖子</h5>
+                    <c:forEach items="${myPosts}" var="post">
+                        <div class="d-flex justify-content-between align-items-center border rounded-4 p-3 mb-2">
+                            <div>
+                                <div class="fw-semibold">${post.title}</div>
+                                <div class="small text-muted">${post.courseName} · 点赞 ${post.likeCount} · 回复 ${post.replyCount}</div>
+                            </div>
+                            <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/post/detail?id=${post.id}">查看</a>
+                        </div>
+                    </c:forEach>
+                    <c:if test="${empty myPosts}">
+                        <div class="text-muted">你还没有发布课程帖子。</div>
+                    </c:if>
+                </div>
+            </div>
+
+            <div class="card list-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">AI 提问历史</h5>
+                    <c:forEach items="${aiHistory}" var="item">
+                        <div class="border rounded-4 p-3 mb-2">
+                            <div class="fw-semibold mb-1">${item.question}</div>
+                            <div class="small text-muted mb-2"><fmt:formatDate value="${item.createTime}" pattern="yyyy-MM-dd HH:mm"/></div>
+                            <div class="text-secondary">${item.answer}</div>
+                        </div>
+                    </c:forEach>
+                    <c:if test="${empty aiHistory}">
+                        <div class="text-muted">还没有 AI 记录。</div>
+                    </c:if>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -33,24 +101,19 @@
     function uploadAvatar() {
         const fileInput = document.getElementById('fileInput');
         if (fileInput.files.length === 0) {
-            alert("请先选择一张图片");
+            alert('请先选择头像图片');
             return;
         }
-
         const formData = new FormData();
         formData.append('avatarFile', fileInput.files[0]);
-
         fetch('${pageContext.request.contextPath}/user/updateAvatar', {
             method: 'POST',
             body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
+        }).then(function(res) { return res.json(); })
+            .then(function(data) {
+                alert(data.msg || '头像更新完成');
                 if (data.code === 200) {
-                    alert("头像更新成功！");
                     document.getElementById('avatarImg').src = data.avatar;
-                } else {
-                    alert("上传失败");
                 }
             });
     }

@@ -2,75 +2,73 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.study.ai.mapper.ResourceMapper">
 
-    <!-- 1. 定义映射规则：解决数据库下划线与Java驼峰命名的对应关系 -->
     <resultMap id="ResourceMap" type="com.study.ai.pojo.entity.Resource">
-        <!-- 主键 -->
-        <id property="id" column="id" />
-        <!-- 普通字段 -->
-        <result property="title" column="title" />
-        <result property="description" column="description" />
-        <result property="filePath" column="file_path" />
-        <result property="fileSize" column="file_size" />
-        <result property="points" column="points" />
-        <result property="uploaderId" column="uploader_id" />
-        <result property="createTime" column="create_time" />
-        <result property="downloadCount" column="download_count" />
-        <result property="likes" column="likes" />
-
-        <!-- 关联查询字段 -->
-        <result property="uploaderNickname" column="uploader_nickname" />
-        <result property="userUploadCount" column="user_upload_count" />
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="courseName" column="course_name"/>
+        <result property="category" column="category"/>
+        <result property="description" column="description"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="points" column="points"/>
+        <result property="uploaderId" column="uploader_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="downloadCount" column="download_count"/>
+        <result property="likes" column="likes"/>
+        <result property="uploaderNickname" column="uploader_nickname"/>
+        <result property="userUploadCount" column="user_upload_count"/>
     </resultMap>
 
-    <!-- 2. 查询所有资源 -->
     <select id="findAll" resultMap="ResourceMap">
         SELECT
             r.*,
-            u.nickname as uploader_nickname
+            u.nickname AS uploader_nickname
         FROM resource r
                  LEFT JOIN user u ON r.uploader_id = u.id
         ORDER BY r.create_time DESC
     </select>
 
-    <!-- 3. 根据ID查询详情 -->
     <select id="findById" resultMap="ResourceMap">
         SELECT
             r.*,
-            u.nickname as uploader_nickname,
-            (SELECT COUNT(*) FROM resource WHERE uploader_id = r.uploader_id) as user_upload_count
+            u.nickname AS uploader_nickname,
+            (SELECT COUNT(*) FROM resource WHERE uploader_id = r.uploader_id) AS user_upload_count
         FROM resource r
                  LEFT JOIN user u ON r.uploader_id = u.id
         WHERE r.id = #{id}
     </select>
 
-    <!-- 4. 搜索资源 -->
-    <select id="searchByTitle" resultMap="ResourceMap">
+    <select id="searchByKeyword" resultMap="ResourceMap">
         SELECT
             r.*,
-            u.nickname as uploader_nickname
+            u.nickname AS uploader_nickname
         FROM resource r
                  LEFT JOIN user u ON r.uploader_id = u.id
         WHERE r.title LIKE CONCAT('%', #{keyword}, '%')
-        ORDER BY r.id DESC
+           OR r.course_name LIKE CONCAT('%', #{keyword}, '%')
+           OR r.description LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY r.create_time DESC
     </select>
 
-    <!-- 5. 插入资源 -->
+    <select id="findByUploaderId" resultMap="ResourceMap">
+        SELECT
+            r.*,
+            u.nickname AS uploader_nickname
+        FROM resource r
+                 LEFT JOIN user u ON r.uploader_id = u.id
+        WHERE r.uploader_id = #{userId}
+        ORDER BY r.create_time DESC
+    </select>
+
     <insert id="insertResource" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO resource(title, file_path, file_size, points, uploader_id, description, create_time)
-        VALUES(#{title}, #{filePath}, #{fileSize}, #{points}, #{uploaderId}, #{description}, NOW())
+        INSERT INTO resource(title, course_name, category, file_path, file_size, points, uploader_id, description, create_time)
+        VALUES(#{title}, #{courseName}, #{category}, #{filePath}, #{fileSize}, #{points}, #{uploaderId}, #{description}, NOW())
     </insert>
 
-    <!-- 6. 更新下载次数 -->
     <update id="incrDownloadCount">
         UPDATE resource SET download_count = download_count + 1 WHERE id = #{id}
     </update>
 
-    <!-- 7. 更新点赞数 -->
-    <update id="incrementLikes">
-        UPDATE resource SET likes = likes + 1 WHERE id = #{id}
-    </update>
-
-    <!-- 8. 删除资源 -->
     <delete id="deleteById">
         DELETE FROM resource WHERE id = #{id}
     </delete>

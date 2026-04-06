@@ -1,24 +1,33 @@
 package com.study.ai.controller;
 
-import com.study.ai.mapper.ResourceMapper;
-import com.study.ai.mapper.UserMapper;
+import com.study.ai.pojo.entity.Post;
+import com.study.ai.pojo.entity.Resource;
+import com.study.ai.service.PostService;
+import com.study.ai.service.ResourceService;
+import com.study.ai.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import javax.servlet.http.HttpSession;
+import java.util.List;
+
 @Controller
 public class IndexController {
 
-    @Autowired private ResourceMapper resourceMapper;
-    @Autowired private UserMapper userMapper;
+    @Autowired private ResourceService resourceService;
+    @Autowired private PostService postService;
+    @Autowired private UserService userService;
 
     @GetMapping({"/", "/index"})
-    public String index(Model model) {
-        // 首页展示最新的 6 条资源
-        model.addAttribute("resources", resourceMapper.findAll().subList(0, Math.min(6, resourceMapper.findAll().size())));
-        // 侧边栏：积分贡献榜 (假设 UserMapper 有此方法)
-        model.addAttribute("topUsers", userMapper.findTopPointsUsers());
+    public String index(Model model, HttpSession session) {
+        List<Resource> resources = resourceService.listResources(1, null).getList();
+        List<Post> posts = postService.listPosts(1, null).getList();
+        model.addAttribute("resources", resources);
+        model.addAttribute("posts", posts);
+        model.addAttribute("topUsers", userService.findTopUsers());
+        model.addAttribute("currUser", session.getAttribute("currUser"));
         return "index";
     }
 }

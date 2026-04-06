@@ -8,10 +8,10 @@ public class User {
     private String username;
     private String password;
     private String nickname;
-    private String avatar;
-    private String role;     // "1": 管理员, "0": 普通用户
-    private Integer points;
-    private Integer status;  // 0: 正常, 1: 冻结
-    private Date createTime;
     private String email;
+    private String avatar;
+    private String role;
+    private Integer points;
+    private Integer status;
+    private Date createTime;
 }

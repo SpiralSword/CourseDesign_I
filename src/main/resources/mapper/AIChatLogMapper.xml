@@ -4,11 +4,11 @@
 
     <insert id="insertLog">
         INSERT INTO ai_chat_log (user_id, question, content, create_time)
-        VALUES (#{userId}, #{question}, #{content}, NOW())
+        VALUES (#{userId}, #{question}, #{answer}, NOW())
     </insert>
 
     <select id="findByUserId" resultType="com.study.ai.pojo.entity.AIChatLog">
-        SELECT id, user_id as userId, question, content, create_time as createTime
+        SELECT id, user_id AS userId, question, content AS answer, create_time AS createTime
         FROM ai_chat_log
         WHERE user_id = #{userId}
         ORDER BY create_time DESC

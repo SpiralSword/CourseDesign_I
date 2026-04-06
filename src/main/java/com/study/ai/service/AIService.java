@@ -1,10 +1,12 @@
 package com.study.ai.service;
 
+import com.study.ai.pojo.entity.AIChatLog;
+import com.study.ai.pojo.entity.User;
+
+import java.util.List;
+
 public interface AIService {
-    /**
-     * 发送问题给 AI 并获取回答
-     * @param question 用户提问内容
-     * @return AI 返回的文本
-     */
-    String getAIResponse(String question);
+    List<AIChatLog> listHistory(Integer userId);
+
+    String ask(User user, String question);
 }
