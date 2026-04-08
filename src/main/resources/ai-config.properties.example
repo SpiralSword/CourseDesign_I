@@ -1,0 +1,3 @@
+ai.api.url=https://api.deepseek.com/chat/completions
+ai.api.model=deepseek-chat
+ai.api.key=
