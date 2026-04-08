@@ -1,3 +1,5 @@
+CREATE DATABASE IF NOT EXISTS acss_db CHARACTER SET utf8mb4;
+
 CREATE TABLE IF NOT EXISTS user (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(64) NOT NULL UNIQUE,
@@ -75,3 +77,6 @@ CREATE TABLE IF NOT EXISTS check_in_log (
     check_in_date DATE NOT NULL,
     UNIQUE KEY uk_user_date (user_id, check_in_date)
 );
+
+INSERT INTO `user` (`username`, `password`, `nickname`, `role`, `points`, `status`)
+VALUES ('admin', MD5('123456'), '管理员', '1', 100, 0);
