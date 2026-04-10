@@ -12,6 +12,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AIServiceImpl implements AIService {
     private static final MediaType JSON_TYPE = MediaType.get("application/json; charset=utf-8");
+    private static final Logger logger = LoggerFactory.getLogger(AIServiceImpl.class);
+    private static final String DEFAULT_API_URL = "https://api.deepseek.com/chat/completions";
 
     @Autowired
     private AIChatLogMapper aiChatLogMapper;
@@ -71,6 +75,7 @@ public class AIServiceImpl implements AIService {
             return "AI 服务尚未配置密钥，请在 ai-config.properties 中填写后重试。";
         }
         try {
+            String resolvedApiUrl = resolveApiUrl();
             JSONObject payload = new JSONObject();
             payload.put("model", model);
 
@@ -84,25 +89,78 @@ public class AIServiceImpl implements AIService {
             payload.put("messages", messages);
 
             Request request = new Request.Builder()
-                    .url(apiUrl)
+                    .url(resolvedApiUrl)
                     .addHeader("Authorization", "Bearer " + apiKey.trim())
                     .post(RequestBody.create(payload.toJSONString(), JSON_TYPE))
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful() || response.body() == null) {
+                String responseText = response.body() == null ? "" : response.body().string();
+                if (!response.isSuccessful()) {
+                    logger.warn("AI API request failed. status={}, url={}, body={}",
+                            response.code(), resolvedApiUrl, abbreviate(responseText));
+                    return buildFailureMessage(response.code());
+                }
+                if (responseText.trim().isEmpty()) {
+                    logger.warn("AI API returned empty body. url={}", resolvedApiUrl);
                     return "AI 助手目前不可用，请稍后再试。";
                 }
-                String json = response.body().string();
-                JSONObject body = JSON.parseObject(json);
+                JSONObject body = JSON.parseObject(responseText);
                 JSONArray choices = body.getJSONArray("choices");
                 if (choices == null || choices.isEmpty()) {
+                    logger.warn("AI API returned no choices. url={}, body={}", resolvedApiUrl, abbreviate(responseText));
                     return "AI 助手暂时没有返回有效结果。";
                 }
-                return choices.getJSONObject(0).getJSONObject("message").getString("content");
+                JSONObject firstChoice = choices.getJSONObject(0);
+                JSONObject message = firstChoice == null ? null : firstChoice.getJSONObject("message");
+                String content = message == null ? null : message.getString("content");
+                if (content == null || content.trim().isEmpty()) {
+                    logger.warn("AI API returned empty content. url={}, body={}", resolvedApiUrl, abbreviate(responseText));
+                    return "AI 助手暂时没有返回有效结果。";
+                }
+                return content.trim();
             }
         } catch (Exception e) {
-            return "AI 助手目前正忙，请稍后再试。错误信息：" + e.getMessage();
+            logger.error("Call AI model failed. url={}, model={}", resolveApiUrl(), model, e);
+            return "AI 助手目前正忙，请检查网络或接口配置。错误信息：" + e.getMessage();
         }
+    }
+
+    private String resolveApiUrl() {
+        if (apiUrl == null || apiUrl.trim().isEmpty()) {
+            return DEFAULT_API_URL;
+        }
+        String trimmed = apiUrl.trim();
+        if ("https://api.deepseek.com".equals(trimmed) || "https://api.deepseek.com/".equals(trimmed)) {
+            return DEFAULT_API_URL;
+        }
+        return trimmed;
+    }
+
+    private String buildFailureMessage(int statusCode) {
+        if (statusCode == 401 || statusCode == 403) {
+            return "AI 服务鉴权失败，请检查 ai.api.key 是否正确且仍可用。";
+        }
+        if (statusCode == 404) {
+            return "AI 接口地址不可用，请检查 ai.api.url 是否为完整的 /chat/completions 地址。";
+        }
+        if (statusCode == 429) {
+            return "AI 服务请求过于频繁，或当前账户额度不足，请稍后重试。";
+        }
+        if (statusCode >= 500) {
+            return "AI 服务提供商暂时不可用，请稍后再试。";
+        }
+        return "AI 助手目前不可用，请检查 AI 接口配置后重试。";
+    }
+
+    private String abbreviate(String text) {
+        if (text == null) {
+            return "";
+        }
+        String normalized = text.replaceAll("\\s+", " ").trim();
+        if (normalized.length() <= 300) {
+            return normalized;
+        }
+        return normalized.substring(0, 300) + "...";
     }
 }
